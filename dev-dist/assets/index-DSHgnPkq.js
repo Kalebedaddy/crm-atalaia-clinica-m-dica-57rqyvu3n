@@ -18997,6 +18997,15 @@ var CircleArrowUp = createLucideIcon("circle-arrow-up", [
 		key: "1sbj14"
 	}]
 ]);
+var CircleCheck = createLucideIcon("circle-check", [["circle", {
+	cx: "12",
+	cy: "12",
+	r: "10",
+	key: "1mglay"
+}], ["path", {
+	d: "m9 12 2 2 4-4",
+	key: "dzmm74"
+}]]);
 var CircleQuestionMark = createLucideIcon("circle-question-mark", [
 	["circle", {
 		cx: "12",
@@ -19171,6 +19180,10 @@ var Menu = createLucideIcon("menu", [
 		key: "1djgab"
 	}]
 ]);
+var MessageCircle = createLucideIcon("message-circle", [["path", {
+	d: "M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719",
+	key: "1sd12s"
+}]]);
 var PanelRight = createLucideIcon("panel-right", [["rect", {
 	width: "18",
 	height: "18",
@@ -32086,7 +32099,7 @@ var SelectSeparator = import_react.forwardRef(({ className, ...props }, ref) => 
 	...props
 }));
 SelectSeparator.displayName = Separator$1.displayName;
-var formSchema = object({
+var formSchema$1 = object({
 	firstName: string().min(1, "Nome é obrigatório"),
 	lastName: string().min(1, "Sobrenome é obrigatório"),
 	email: string().email("E-mail inválido"),
@@ -32105,7 +32118,7 @@ function ContactFormDialog({ open, onOpenChange, contactToEdit }) {
 	const { addContact, updateContact } = useContactsStore_default();
 	const { toast: toast$2 } = useToast();
 	const form = useForm({
-		resolver: a(formSchema),
+		resolver: a(formSchema$1),
 		defaultValues: {
 			firstName: "",
 			lastName: "",
@@ -35227,7 +35240,7 @@ var require_use_sync_external_store_shim_development = /* @__PURE__ */ __commonJ
 				var cachedValue = getSnapshot();
 				objectIs(value, cachedValue) || (console.error("The result of getSnapshot should be cached to avoid an infinite loop"), didWarnUncachedGetSnapshot = !0);
 			}
-			cachedValue = useState$6({ inst: {
+			cachedValue = useState$7({ inst: {
 				value,
 				getSnapshot
 			} });
@@ -35264,7 +35277,7 @@ var require_use_sync_external_store_shim_development = /* @__PURE__ */ __commonJ
 			return getSnapshot();
 		}
 		"undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-		var React$3 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState$6 = React$3.useState, useEffect$3 = React$3.useEffect, useLayoutEffect$1 = React$3.useLayoutEffect, useDebugValue = React$3.useDebugValue, didWarnOld18Alpha = !1, didWarnUncachedGetSnapshot = !1, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
+		var React$3 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState$7 = React$3.useState, useEffect$3 = React$3.useEffect, useLayoutEffect$1 = React$3.useLayoutEffect, useDebugValue = React$3.useDebugValue, didWarnOld18Alpha = !1, didWarnUncachedGetSnapshot = !1, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
 		exports.useSyncExternalStore = void 0 !== React$3.useSyncExternalStore ? React$3.useSyncExternalStore : shim;
 		"undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
 	})();
@@ -36131,6 +36144,157 @@ function ContactsBoard({ contacts, onEdit }) {
 		contact: viewingContact
 	})] });
 }
+var Card = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	ref,
+	className: cn("rounded-lg border bg-card text-card-foreground shadow-sm", className),
+	...props
+}));
+Card.displayName = "Card";
+var CardHeader = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	ref,
+	className: cn("flex flex-col space-y-1.5 p-6", className),
+	...props
+}));
+CardHeader.displayName = "CardHeader";
+var CardTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	ref,
+	className: cn("text-2xl font-semibold leading-none tracking-tight", className),
+	...props
+}));
+CardTitle.displayName = "CardTitle";
+var CardDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	ref,
+	className: cn("text-sm text-muted-foreground", className),
+	...props
+}));
+CardDescription.displayName = "CardDescription";
+var CardContent = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	ref,
+	className: cn("p-6 pt-0", className),
+	...props
+}));
+CardContent.displayName = "CardContent";
+var CardFooter = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	ref,
+	className: cn("flex items-center p-6 pt-0", className),
+	...props
+}));
+CardFooter.displayName = "CardFooter";
+var WhatsappContext = (0, import_react.createContext)(void 0);
+const WhatsappProvider = ({ children }) => {
+	const [phoneNumber, setPhoneNumber] = (0, import_react.useState)(null);
+	const [isConnected, setIsConnected] = (0, import_react.useState)(false);
+	const connect = (number) => {
+		setPhoneNumber(number);
+		setIsConnected(true);
+	};
+	const disconnect = () => {
+		setPhoneNumber(null);
+		setIsConnected(false);
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WhatsappContext.Provider, {
+		value: {
+			phoneNumber,
+			isConnected,
+			connect,
+			disconnect
+		},
+		children
+	});
+};
+var useWhatsappStore = () => {
+	const context = (0, import_react.useContext)(WhatsappContext);
+	if (!context) throw new Error("useWhatsappStore must be used within a WhatsappProvider");
+	return context;
+};
+var useWhatsappStore_default = useWhatsappStore;
+const WhatsappIcon = ({ className }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", {
+	xmlns: "http://www.w3.org/2000/svg",
+	viewBox: "0 0 24 24",
+	width: "24",
+	height: "24",
+	className,
+	fill: "currentColor",
+	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" })
+});
+var formSchema = object({ phoneNumber: string().min(1, "O número é obrigatório").regex(/^\+?[1-9]\d{7,14}$/, "Formato inválido. Use código do país e número (ex: 5511999999999)") });
+function WhatsappIntegrationCard() {
+	const { isConnected, phoneNumber, connect, disconnect } = useWhatsappStore_default();
+	const form = useForm({
+		resolver: a(formSchema),
+		defaultValues: { phoneNumber: "" }
+	});
+	const onSubmit = (values) => {
+		connect(values.phoneNumber);
+	};
+	const handleStartChat = () => {
+		if (phoneNumber) window.open(`https://wa.me/${phoneNumber.replace(/[^0-9]/g, "")}`, "_blank");
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+		className: "w-full shadow-sm hover:shadow-md transition-shadow bg-white",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+				className: "pb-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+					className: "flex items-center gap-2 text-lg",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WhatsappIcon, { className: "h-5 w-5 text-green-500" }), "WhatsApp Business"]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "Integre seu número para iniciar conversas rápidas." })]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
+				className: "pb-4",
+				children: isConnected ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex items-center gap-3 bg-green-50/50 text-green-800 p-3 rounded-lg border border-green-200",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleCheck, { className: "h-5 w-5 text-green-600 flex-shrink-0" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex flex-col",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "font-semibold text-sm",
+							children: "Conectado"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "text-xs text-green-700/80 font-medium",
+							children: phoneNumber
+						})]
+					})]
+				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form, {
+					...form,
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+						onSubmit: form.handleSubmit(onSubmit),
+						className: "space-y-4",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+							control: form.control,
+							name: "phoneNumber",
+							render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Número do WhatsApp" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									placeholder: "+55 11 99999-9999",
+									className: "rounded-md bg-white",
+									...field
+								}) }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+							] })
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							type: "submit",
+							className: "w-full bg-green-600 hover:bg-green-700 text-white rounded-md font-medium",
+							children: "Conectar WhatsApp"
+						})]
+					})
+				})
+			}),
+			isConnected && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardFooter, {
+				className: "flex gap-3 pt-0",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					onClick: handleStartChat,
+					className: "flex-1 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(MessageCircle, { className: "mr-2 h-4 w-4" }), "Iniciar Chat"]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					variant: "outline",
+					onClick: disconnect,
+					className: "flex-none text-red-600 border-red-200 hover:text-red-700 hover:bg-red-50 hover:border-red-300 rounded-md font-medium",
+					children: "Desconectar"
+				})]
+			})
+		]
+	});
+}
 function Index() {
 	const [activeTab, setActiveTab] = (0, import_react.useState)("all");
 	const { contacts } = useContactsStore_default();
@@ -36225,6 +36389,10 @@ function Index() {
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: cn("p-6 pb-20", viewMode === "board" && "h-full flex flex-col"),
 					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 flex-shrink-0",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WhatsappIntegrationCard, {})
+						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 							className: "flex flex-col space-y-4 mb-6 flex-shrink-0",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -37338,6 +37506,20 @@ var SheetDescription = import_react.forwardRef(({ className, ...props }, ref) =>
 }));
 SheetDescription.displayName = Description.displayName;
 var image_default = "/assets/image-CV4VOy7_.png";
+function WhatsappFab() {
+	const { isConnected, phoneNumber } = useWhatsappStore_default();
+	if (!isConnected || !phoneNumber) return null;
+	const handleStartChat = () => {
+		window.open(`https://wa.me/${phoneNumber.replace(/[^0-9]/g, "")}`, "_blank");
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+		size: "icon",
+		className: "fixed bottom-6 right-6 h-14 w-14 rounded-full bg-green-500 hover:bg-green-600 shadow-[0_4px_14px_0_rgba(34,197,94,0.39)] hover:shadow-[0_6px_20px_rgba(34,197,94,0.23)] hover:-translate-y-1 transition-all duration-300 z-50",
+		onClick: handleStartChat,
+		title: "Iniciar conversa no WhatsApp",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WhatsappIcon, { className: "h-7 w-7 text-white" })
+	});
+}
 function Layout() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "flex min-h-screen w-full bg-[#FDFDFD] font-sans selection:bg-primary/10 selection:text-primary",
@@ -37371,7 +37553,8 @@ function Layout() {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("main", {
 				className: "flex-1 flex flex-col relative overflow-hidden pt-16 md:pt-0",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Outlet, {})
-			})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WhatsappFab, {})
 		]
 	});
 }
@@ -37382,7 +37565,7 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 	},
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipProvider, {
 		delayDuration: 0,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(ContactsProvider, { children: [
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ContactsProvider, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(WhatsappProvider, { children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster$1, {}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Routes, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
@@ -37395,10 +37578,10 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 				path: "*",
 				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(NotFound_default, {})
 			})] })
-		] })
+		] }) })
 	})
 });
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-Dt6WCg9V.js.map
+//# sourceMappingURL=index-DSHgnPkq.js.map

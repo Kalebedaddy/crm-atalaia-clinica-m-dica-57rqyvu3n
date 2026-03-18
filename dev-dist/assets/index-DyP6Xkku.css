@@ -609,6 +609,9 @@ section[aria-label='Notifications alt+T'] {
 .bottom-4{
   bottom: 1rem;
 }
+.bottom-6{
+  bottom: 1.5rem;
+}
 .left-0{
   left: 0px;
 }
@@ -638,6 +641,9 @@ section[aria-label='Notifications alt+T'] {
 }
 .right-4{
   right: 1rem;
+}
+.right-6{
+  right: 1.5rem;
 }
 .top-0{
   top: 0px;
@@ -811,6 +817,9 @@ section[aria-label='Notifications alt+T'] {
 .h-12{
   height: 3rem;
 }
+.h-14{
+  height: 3.5rem;
+}
 .h-16{
   height: 4rem;
 }
@@ -927,6 +936,9 @@ section[aria-label='Notifications alt+T'] {
 }
 .w-12{
   width: 3rem;
+}
+.w-14{
+  width: 3.5rem;
 }
 .w-2{
   width: 0.5rem;
@@ -1075,6 +1087,9 @@ section[aria-label='Notifications alt+T'] {
 .flex-1{
   flex: 1 1 0%;
 }
+.flex-none{
+  flex: none;
+}
 .flex-shrink-0{
   flex-shrink: 0;
 }
@@ -1188,6 +1203,9 @@ section[aria-label='Notifications alt+T'] {
 }
 .list-none{
   list-style-type: none;
+}
+.grid-cols-1{
+  grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 .grid-cols-2{
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1429,6 +1447,10 @@ section[aria-label='Notifications alt+T'] {
   --tw-border-opacity: 1;
   border-color: rgb(209 213 219 / var(--tw-border-opacity, 1));
 }
+.border-green-200{
+  --tw-border-opacity: 1;
+  border-color: rgb(187 247 208 / var(--tw-border-opacity, 1));
+}
 .border-input{
   border-color: hsl(var(--input));
 }
@@ -1441,6 +1463,10 @@ section[aria-label='Notifications alt+T'] {
 .border-purple-100{
   --tw-border-opacity: 1;
   border-color: rgb(243 232 255 / var(--tw-border-opacity, 1));
+}
+.border-red-200{
+  --tw-border-opacity: 1;
+  border-color: rgb(254 202 202 / var(--tw-border-opacity, 1));
 }
 .border-sidebar-border{
   border-color: hsl(var(--sidebar-border));
@@ -1518,6 +1544,17 @@ section[aria-label='Notifications alt+T'] {
 .bg-green-100{
   --tw-bg-opacity: 1;
   background-color: rgb(220 252 231 / var(--tw-bg-opacity, 1));
+}
+.bg-green-50\/50{
+  background-color: rgb(240 253 244 / 0.5);
+}
+.bg-green-500{
+  --tw-bg-opacity: 1;
+  background-color: rgb(34 197 94 / var(--tw-bg-opacity, 1));
+}
+.bg-green-600{
+  --tw-bg-opacity: 1;
+  background-color: rgb(22 163 74 / var(--tw-bg-opacity, 1));
 }
 .bg-indigo-100{
   --tw-bg-opacity: 1;
@@ -1906,9 +1943,24 @@ section[aria-label='Notifications alt+T'] {
   --tw-text-opacity: 1;
   color: rgb(17 24 39 / var(--tw-text-opacity, 1));
 }
+.text-green-500{
+  --tw-text-opacity: 1;
+  color: rgb(34 197 94 / var(--tw-text-opacity, 1));
+}
+.text-green-600{
+  --tw-text-opacity: 1;
+  color: rgb(22 163 74 / var(--tw-text-opacity, 1));
+}
 .text-green-700{
   --tw-text-opacity: 1;
   color: rgb(21 128 61 / var(--tw-text-opacity, 1));
+}
+.text-green-700\/80{
+  color: rgb(21 128 61 / 0.8);
+}
+.text-green-800{
+  --tw-text-opacity: 1;
+  color: rgb(22 101 52 / var(--tw-text-opacity, 1));
 }
 .text-indigo-700{
   --tw-text-opacity: 1;
@@ -1950,6 +2002,10 @@ section[aria-label='Notifications alt+T'] {
 }
 .text-sidebar-foreground\/70{
   color: hsl(var(--sidebar-foreground) / 0.7);
+}
+.text-white{
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
 }
 .underline{
   text-decoration-line: underline;
@@ -2001,6 +2057,11 @@ section[aria-label='Notifications alt+T'] {
 .shadow-\[0_0_0_1px_hsl\(var\(--sidebar-border\)\)\]{
   --tw-shadow: 0 0 0 1px hsl(var(--sidebar-border));
   --tw-shadow-colored: 0 0 0 1px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+.shadow-\[0_4px_14px_0_rgba\(34\2c 197\2c 94\2c 0\.39\)\]{
+  --tw-shadow: 0 4px 14px 0 rgba(34,197,94,0.39);
+  --tw-shadow-colored: 0 4px 14px 0 var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 .shadow-lg{
@@ -2409,6 +2470,10 @@ section[aria-label='Notifications alt+T'] {
   border-top-right-radius: calc(var(--radius) - 2px);
   border-bottom-right-radius: calc(var(--radius) - 2px);
 }
+.hover\:-translate-y-1:hover{
+  --tw-translate-y: -0.25rem;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
 .hover\:scale-105:hover{
   --tw-scale-x: 1.05;
   --tw-scale-y: 1.05;
@@ -2427,6 +2492,10 @@ section[aria-label='Notifications alt+T'] {
 .hover\:border-purple-200:hover{
   --tw-border-opacity: 1;
   border-color: rgb(233 213 255 / var(--tw-border-opacity, 1));
+}
+.hover\:border-red-300:hover{
+  --tw-border-opacity: 1;
+  border-color: rgb(252 165 165 / var(--tw-border-opacity, 1));
 }
 .hover\:bg-accent:hover{
   background-color: hsl(var(--accent));
@@ -2462,6 +2531,14 @@ section[aria-label='Notifications alt+T'] {
 .hover\:bg-green-200:hover{
   --tw-bg-opacity: 1;
   background-color: rgb(187 247 208 / var(--tw-bg-opacity, 1));
+}
+.hover\:bg-green-600:hover{
+  --tw-bg-opacity: 1;
+  background-color: rgb(22 163 74 / var(--tw-bg-opacity, 1));
+}
+.hover\:bg-green-700:hover{
+  --tw-bg-opacity: 1;
+  background-color: rgb(21 128 61 / var(--tw-bg-opacity, 1));
 }
 .hover\:bg-indigo-200:hover{
   --tw-bg-opacity: 1;
@@ -2499,6 +2576,10 @@ section[aria-label='Notifications alt+T'] {
 .hover\:bg-purple-50:hover{
   --tw-bg-opacity: 1;
   background-color: rgb(250 245 255 / var(--tw-bg-opacity, 1));
+}
+.hover\:bg-red-50:hover{
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 242 242 / var(--tw-bg-opacity, 1));
 }
 .hover\:bg-red-700:hover{
   --tw-bg-opacity: 1;
@@ -2547,6 +2628,10 @@ section[aria-label='Notifications alt+T'] {
   --tw-text-opacity: 1;
   color: rgb(126 34 206 / var(--tw-text-opacity, 1));
 }
+.hover\:text-red-700:hover{
+  --tw-text-opacity: 1;
+  color: rgb(185 28 28 / var(--tw-text-opacity, 1));
+}
 .hover\:text-sidebar-accent-foreground:hover{
   color: hsl(var(--sidebar-accent-foreground));
 }
@@ -2562,6 +2647,11 @@ section[aria-label='Notifications alt+T'] {
 .hover\:shadow-\[0_0_0_1px_hsl\(var\(--sidebar-accent\)\)\]:hover{
   --tw-shadow: 0 0 0 1px hsl(var(--sidebar-accent));
   --tw-shadow-colored: 0 0 0 1px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+.hover\:shadow-\[0_6px_20px_rgba\(34\2c 197\2c 94\2c 0\.23\)\]:hover{
+  --tw-shadow: 0 6px 20px rgba(34,197,94,0.23);
+  --tw-shadow-colored: 0 6px 20px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 .hover\:shadow-md:hover{
@@ -3351,6 +3441,9 @@ section[aria-label='Notifications alt+T'] {
   .md\:max-w-\[420px\]{
     max-width: 420px;
   }
+  .md\:grid-cols-2{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .md\:flex-row{
     flex-direction: row;
   }
@@ -3419,6 +3512,9 @@ section[aria-label='Notifications alt+T'] {
   }
   .xl\:w-auto{
     width: auto;
+  }
+  .xl\:grid-cols-3{
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .xl\:flex-row{
     flex-direction: row;

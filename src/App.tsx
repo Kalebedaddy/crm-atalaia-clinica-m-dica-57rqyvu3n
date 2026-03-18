@@ -6,6 +6,7 @@ import Index from './pages/Index'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
 import { ContactsProvider } from '@/stores/useContactsStore'
+import { WhatsappProvider } from '@/stores/useWhatsappStore'
 
 const App = () => (
   <BrowserRouter
@@ -13,14 +14,16 @@ const App = () => (
   >
     <TooltipProvider delayDuration={0}>
       <ContactsProvider>
-        <Toaster />
-        <Sonner />
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Index />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <WhatsappProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Index />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </WhatsappProvider>
       </ContactsProvider>
     </TooltipProvider>
   </BrowserRouter>

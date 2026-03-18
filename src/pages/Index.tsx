@@ -33,6 +33,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { WhatsappIntegrationCard } from '@/components/whatsapp/WhatsappIntegrationCard'
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState('all')
@@ -119,6 +120,11 @@ export default function Index() {
             viewMode === 'board' && 'h-full flex flex-col',
           )}
         >
+          {/* Integration Cards Area */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 flex-shrink-0">
+            <WhatsappIntegrationCard />
+          </div>
+
           {/* Tabs Section */}
           <div className="flex flex-col space-y-4 mb-6 flex-shrink-0">
             <div className="flex items-center justify-between">

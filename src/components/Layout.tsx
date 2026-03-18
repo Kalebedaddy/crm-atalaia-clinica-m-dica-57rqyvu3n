@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import logoImg from '@/assets/image.png'
+import { WhatsappFab } from '@/components/whatsapp/WhatsappFab'
 
 export default function Layout() {
   return (
@@ -38,6 +39,8 @@ export default function Layout() {
       <main className="flex-1 flex flex-col relative overflow-hidden pt-16 md:pt-0">
         <Outlet />
       </main>
+
+      <WhatsappFab />
     </div>
   )
 }
