@@ -1,0 +1,396 @@
+{
+  "generatedAt": "2026-11-14T22:46:20.029Z",
+  "collections": [
+    {
+      "name": "users",
+      "type": "auth",
+      "apiRules": {
+        "list": "id = @request.auth.id",
+        "view": "id = @request.auth.id",
+        "create": "",
+        "update": "id = @request.auth.id",
+        "delete": "id = @request.auth.id"
+      },
+      "fields": [
+        {
+          "name": "name",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "avatar",
+          "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_tokenKey__pb_users_auth_` ON `users` (`tokenKey`)",
+        "CREATE UNIQUE INDEX `idx_email__pb_users_auth_` ON `users` (`email`) WHERE `email` != ''"
+      ]
+    },
+    {
+      "name": "leads",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "phone",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "email",
+          "type": "email",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "main_complaint",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "source",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["Instagram", "Google", "Indicação", "Outro"]
+        },
+        {
+          "name": "stage",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": [
+            "lead_frio",
+            "lead_morno",
+            "lead_quente",
+            "agendado",
+            "confirmado",
+            "consulta_realizada",
+            "plano_oferecido",
+            "plano_ativo"
+          ]
+        },
+        {
+          "name": "stage_changed_at",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "marketing_cost",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "life_up_map",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "life_up_notes",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "plan_cycle",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["6", "8", "12", "24"]
+        },
+        {
+          "name": "plan_started_at",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_leads_stage ON leads (stage)",
+        "CREATE INDEX idx_leads_created ON leads (created DESC)",
+        "CREATE INDEX idx_leads_phone ON leads (phone)"
+      ]
+    },
+    {
+      "name": "stage_history",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "lead",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "leads"
+        },
+        {
+          "name": "from_stage",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "to_stage",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_stage_history_lead ON stage_history (lead)",
+        "CREATE INDEX idx_stage_history_created ON stage_history (created DESC)"
+      ]
+    },
+    {
+      "name": "habit_library",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "title",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "category",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": [
+            "Sono",
+            "Alimentação",
+            "Movimento",
+            "Gestão de Estresse"
+          ]
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_habit_library_category ON habit_library (category)"
+      ]
+    },
+    {
+      "name": "habit_prescriptions",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "lead",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "leads"
+        },
+        {
+          "name": "habit",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "habit_library"
+        },
+        {
+          "name": "plan_cycle",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["6", "8", "12", "24"]
+        },
+        {
+          "name": "start_date",
+          "type": "date",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "weekly_checkin",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_habit_prescriptions_lead ON habit_prescriptions (lead)",
+        "CREATE INDEX idx_habit_prescriptions_habit ON habit_prescriptions (habit)"
+      ]
+    },
+    {
+      "name": "message_templates",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "stage",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": [
+            "lead_frio",
+            "lead_morno",
+            "lead_quente",
+            "agendado",
+            "confirmado",
+            "consulta_realizada",
+            "plano_oferecido",
+            "plano_ativo"
+          ]
+        },
+        {
+          "name": "body",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_message_templates_stage ON message_templates (stage)"
+      ]
+    }
+  ]
+}
