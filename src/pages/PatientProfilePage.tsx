@@ -2,7 +2,7 @@
 // marketing, Mapa da Saúde Life Up e Prescrição de Hábitos (planos de 6/8/12/24 semanas).
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, Plus, Trash2, Save } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -31,69 +31,103 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useCrmStore } from '@/stores/useCrmStore'
-import { leadsService, STAGE_LABELS, StageId } from '@/services/crm'
 import {
-  habitPrescriptionsService,
-  HabitCategory,
-  HABIT_CATEGORY_LABEL,
+  leadsService,
+  type LifeUpMap,
+  type PlanCycle,
+  type Habit,
+  type HabitPrescription,
   PLAN_CYCLES,
-} from '@/services/habitPrescriptions'
+  CYCLE_LABELS,
+  STAGE_LABELS,
+  type StageId,
+  waLink,
+} from '@/services/crm'
+import { getErrorMessage } from '@/lib/pocketbase/errors'
 
-const CATEGORIES: HabitCategory[] = [
-  'sono',
-  'alimentacao',
-  'movimento',
-  'estresse',
+const CATEGORIES: Array<Habit['category']> = [
+  'Sono',
+  'Alimentação',
+  'Movimento',
+  'Gestão de Estresse',
 ]
 
-interface HabitRow {
-  id: string
-  title: string
-  category: HabitCategory
-}
+const MAP_FIELDS: Array<{
+  key: keyof Omit<LifeUpMap, 'interpretation'>
+  label: string
+  placeholder: string
+}> = [
+  {
+    key: 'sleep',
+    label: 'Sono',
+    placeholder: 'Ex.: 5–6h por noite, fragmentado, demora a pegar no sono…',
+  },
+  {
+    key: 'nutrition',
+    label: 'Alimentação',
+    placeholder: 'Ex.: refeições irregulares, pouca proteína, muita cafeína…',
+  },
+  {
+    key: 'movement',
+    label: 'Movimento',
+    placeholder: 'Ex.: sedentário, dor lombar ao final do dia…',
+  },
+  {
+    key: 'stress',
+    label: 'Gestão de estresse',
+    placeholder: 'Ex.: jornada longa, má qualidade de recuperação…',
+  },
+]
 
 export default function PatientProfilePage() {
   const { id } = useParams<{ id: string }>()
-  const { leads, habitLibrary, refresh } = useCrmStore()
+  const {
+    leads,
+    habitLibrary,
+    prescriptions,
+    prescribeHabit,
+    removePrescription,
+    refresh,
+  } = useCrmStore()
   const lead = leads.find((l) => l.id === id)
 
-  const [mapa, setMapa] = useState(lead?.lifeUpMap ?? '')
-  const [cost, setCost] = useState(
-    lead?.marketingCost ? String(lead.marketingCost) : '',
-  )
+  const [mapa, setMapa] = useState<LifeUpMap>({})
+  const [mapaDirty, setMapaDirty] = useState(false)
+  const [cost, setCost] = useState('')
   const [mapaSaved, setMapaSaved] = useState(false)
+  const [mapaError, setMapaError] = useState<string | null>(null)
   const [costSaved, setCostSaved] = useState(false)
 
-  const [prescriptions, setPrescriptions] = useState<
-    Awaited<ReturnType<typeof habitPrescriptionsService.listByLead>>
-  >([])
-  const [prescLoading, setPrescLoading] = useState(true)
   const [prescDialogOpen, setPrescDialogOpen] = useState(false)
   const [selectedHabitId, setSelectedHabitId] = useState('')
-  const [cycle, setCycle] = useState<number>(12)
-  const [checkinsPerWeek, setCheckinsPerWeek] = useState(1)
+  const [cycle, setCycle] = useState<PlanCycle>('12')
+  const [weeklyCheckin, setWeeklyCheckin] = useState(true)
   const [prescError, setPrescError] = useState<string | null>(null)
 
   const [history, setHistory] = useState<
-    Array<{ id: string; stage: string; changedAt: string }>
+    Array<{ id: string; fromStage: string; toStage: string; created: string }>
   >([])
+
+  const leadPrescriptions = useMemo(
+    () => (id ? prescriptions.filter((p) => p.lead === id) : []),
+    [prescriptions, id],
+  )
 
   useEffect(() => {
     if (!id) return
     let alive = true
-    habitPrescriptionsService
-      .listByLead(id)
-      .then((rows) => {
-        if (alive) {
-          setPrescriptions(rows)
-          setPrescLoading(false)
-        }
-      })
-      .catch(() => setPrescLoading(false))
     leadsService
-      .stageHistory(id)
+      .getHistory(id)
       .then((rows) => {
-        if (alive) setHistory(rows)
+        if (alive)
+          setHistory(
+            rows.map((r) => ({
+              id: r.id,
+              fromStage: r.fromStage,
+              toStage: r.toStage,
+              created: r.created,
+            })),
+          )
       })
       .catch(() => {})
     return () => {
@@ -102,18 +136,19 @@ export default function PatientProfilePage() {
   }, [id])
 
   useEffect(() => {
-    if (lead) {
-      setMapa(lead.lifeUpMap ?? '')
+    if (lead && !mapaDirty) {
+      setMapa(lead.lifeUpMap ?? {})
       setCost(lead.marketingCost ? String(lead.marketingCost) : '')
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lead?.id])
 
   const habitsByCategory = useMemo(() => {
-    const map: Record<HabitCategory, typeof habitLibrary> = {
-      sono: [],
-      alimentacao: [],
-      movimento: [],
-      estresse: [],
+    const map: Record<Habit['category'], Habit[]> = {
+      Sono: [],
+      Alimentação: [],
+      Movimento: [],
+      'Gestão de Estresse': [],
     }
     for (const h of habitLibrary) map[h.category]?.push(h)
     return map
@@ -133,10 +168,16 @@ export default function PatientProfilePage() {
   }
 
   const saveMapa = async () => {
-    await leadsService.update(lead.id, { life_up_map: mapa })
-    setMapaSaved(true)
-    setTimeout(() => setMapaSaved(false), 2000)
-    refresh()
+    setMapaError(null)
+    try {
+      await leadsService.update(lead.id, { life_up_map: mapa })
+      setMapaDirty(false)
+      setMapaSaved(true)
+      setTimeout(() => setMapaSaved(false), 2000)
+      refresh()
+    } catch (err) {
+      setMapaError(getErrorMessage(err))
+    }
   }
 
   const saveCost = async () => {
@@ -147,36 +188,39 @@ export default function PatientProfilePage() {
   }
 
   const addPrescription = async () => {
-    const habit = habitLibrary.find((h) => h.id === selectedHabitId)
-    if (!habit) {
+    if (!selectedHabitId) {
       setPrescError('Selecione um hábito da biblioteca.')
       return
     }
     setPrescError(null)
     try {
-      await habitPrescriptionsService.create({
+      await prescribeHabit({
         lead: lead.id,
-        habit: habit.id,
-        cycle_weeks: cycle,
-        checkins_per_week: checkinsPerWeek,
+        habit: selectedHabitId,
+        plan_cycle: cycle,
+        start_date: new Date().toISOString().slice(0, 10),
+        weekly_checkin: weeklyCheckin,
       })
-      setPrescriptions(await habitPrescriptionsService.listByLead(lead.id))
+      // vincular um plano registra o ciclo e move o lead para "plano_ativo"
+      await leadsService.update(lead.id, {
+        plan_cycle: cycle,
+        plan_started_at: new Date().toISOString(),
+      })
+      if (lead.stage !== 'plano_ativo') {
+        await leadsService.changeStage(lead, 'plano_ativo')
+      }
+      refresh()
       setPrescDialogOpen(false)
       setSelectedHabitId('')
-      // um plano ativo move o lead para "plano_ativo" se ainda não estiver
-      if (lead.stage !== 'plano_ativo')
-        await leadsService.update(lead.id, { stage: 'plano_ativo' })
-      refresh()
     } catch (err) {
-      setPrescError(habitPrescriptionsService.error(err))
+      setPrescError(getErrorMessage(err))
     }
   }
 
-  const removePrescription = async (prescId: string) => {
-    await habitPrescriptionsService.remove(prescId)
-    setPrescriptions(await habitPrescriptionsService.listByLead(lead.id))
-    refresh()
-  }
+  const waHref = waLink(
+    lead.phone,
+    `Olá ${lead.name.split(' ')[0]}, tudo bem? Aqui é da Atalaia Clínica Médica.`,
+  )
 
   return (
     <div className="space-y-6">
@@ -197,7 +241,7 @@ export default function PatientProfilePage() {
           <Badge variant="secondary">{STAGE_LABELS[lead.stage]}</Badge>
           {lead.planCycle && (
             <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-              Plano {lead.planCycle} semanas
+              Plano {CYCLE_LABELS[lead.planCycle]}
             </Badge>
           )}
           <Button
@@ -206,11 +250,7 @@ export default function PatientProfilePage() {
             size="sm"
             className="bg-[#25D366] hover:bg-[#1eb856] text-white border-transparent"
           >
-            <a
-              href={`https://wa.me/55${lead.phone.replace(/\D/g, '')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href={waHref} target="_blank" rel="noopener noreferrer">
               Abrir WhatsApp
             </a>
           </Button>
@@ -224,25 +264,53 @@ export default function PatientProfilePage() {
             <CardHeader>
               <CardTitle>Mapa da Saúde Life Up</CardTitle>
               <CardDescription>
-                Análise e interpretação dos dados do paciente: queixas, sono,
-                alimentação, movimento, gestão de estresse e achados do exame.
+                Análise integrativa do paciente: sono, alimentação, movimento,
+                gestão de estresse e a interpretação clínica que orienta o
+                plano.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Textarea
-                rows={8}
-                value={mapa}
-                onChange={(e) => setMapa(e.target.value)}
-                placeholder={
-                  'Ex.: dor lombar crônica com piora ao final do dia; sono fragmentado (5–6h/noite);\nsedentarismo; alimentação irregular. Interpretação: sobrecarga mecânica associada a\nbaixa recuperação — priorizar protocolo de sono + fortalecimento progressivo.'
-                }
-              />
+              {MAP_FIELDS.map(({ key, label, placeholder }) => (
+                <div key={key} className="space-y-1">
+                  <Label htmlFor={`mapa-${key}`}>{label}</Label>
+                  <Textarea
+                    id={`mapa-${key}`}
+                    rows={2}
+                    value={mapa[key] ?? ''}
+                    onChange={(e) => {
+                      setMapa((m) => ({ ...m, [key]: e.target.value }))
+                      setMapaDirty(true)
+                    }}
+                    placeholder={placeholder}
+                  />
+                </div>
+              ))}
+              <div className="space-y-1">
+                <Label htmlFor="mapa-interpretation">
+                  Interpretação clínica
+                </Label>
+                <Textarea
+                  id="mapa-interpretation"
+                  rows={4}
+                  value={mapa.interpretation ?? ''}
+                  onChange={(e) => {
+                    setMapa((m) => ({ ...m, interpretation: e.target.value }))
+                    setMapaDirty(true)
+                  }}
+                  placeholder="Ex.: sobrecarga mecânica associada a baixa recuperação — priorizar protocolo de sono + fortalecimento progressivo."
+                />
+              </div>
               <div className="flex items-center gap-2">
-                <Button size="sm" onClick={saveMapa}>
+                <Button size="sm" onClick={saveMapa} disabled={!mapaDirty}>
                   <Save className="mr-2 h-4 w-4" /> Salvar mapa
                 </Button>
                 {mapaSaved && (
                   <span className="text-sm text-emerald-600">Salvo!</span>
+                )}
+                {mapaError && (
+                  <span role="alert" className="text-sm text-destructive">
+                    {mapaError}
+                  </span>
                 )}
               </div>
             </CardContent>
@@ -253,8 +321,8 @@ export default function PatientProfilePage() {
               <div>
                 <CardTitle>Prescrição de Hábitos</CardTitle>
                 <CardDescription>
-                  Hábitos e protocolos vinculados ao plano de acompanhamento,
-                  com período e check-ins semanais.
+                  Hábitos da biblioteca vinculados ao plano de acompanhamento,
+                  com período e acompanhamento semanal.
                 </CardDescription>
               </div>
               <Button size="sm" onClick={() => setPrescDialogOpen(true)}>
@@ -262,40 +330,19 @@ export default function PatientProfilePage() {
               </Button>
             </CardHeader>
             <CardContent>
-              {prescLoading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Carregando…
-                </div>
-              ) : prescriptions.length === 0 ? (
+              {leadPrescriptions.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Nenhum hábito prescrito ainda. Clique em "Prescrever" para
                   vincular hábitos da biblioteca.
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {prescriptions.map((p) => (
-                    <div
+                  {leadPrescriptions.map((p) => (
+                    <PrescriptionRow
                       key={p.id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3"
-                    >
-                      <div>
-                        <p className="text-sm font-medium">{p.habitTitle}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {HABIT_CATEGORY_LABEL[p.habitCategory]} · Plano de{' '}
-                          {p.cycleWeeks} semanas · {p.checkinsPerWeek}{' '}
-                          check-in(s) por semana
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => removePrescription(p.id)}
-                        aria-label="Remover prescrição"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                      prescription={p}
+                      onRemove={removePrescription}
+                    />
                   ))}
                 </div>
               )}
@@ -359,10 +406,12 @@ export default function PatientProfilePage() {
                       />
                       <div>
                         <p className="font-medium">
-                          {STAGE_LABELS[h.stage as StageId] ?? h.stage}
+                          {h.fromStage
+                            ? `${STAGE_LABELS[h.fromStage as StageId] ?? h.fromStage} → ${STAGE_LABELS[h.toStage as StageId] ?? h.toStage}`
+                            : (STAGE_LABELS[h.toStage as StageId] ?? h.toStage)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(h.changedAt).toLocaleString('pt-BR', {
+                          {new Date(h.created).toLocaleString('pt-BR', {
                             dateStyle: 'short',
                             timeStyle: 'short',
                           })}
@@ -391,10 +440,10 @@ export default function PatientProfilePage() {
             {CATEGORIES.map((cat) => (
               <div key={cat} className="space-y-1.5">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {HABIT_CATEGORY_LABEL[cat]}
+                  {cat}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {habitsByCategory[cat].map((h: HabitRow) => (
+                  {habitsByCategory[cat].map((h) => (
                     <button
                       key={h.id}
                       type="button"
@@ -419,36 +468,33 @@ export default function PatientProfilePage() {
               <div className="space-y-1">
                 <Label>Período do plano</Label>
                 <Select
-                  value={String(cycle)}
-                  onValueChange={(v) => setCycle(Number(v))}
+                  value={cycle}
+                  onValueChange={(v) => setCycle(v as PlanCycle)}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {PLAN_CYCLES.map((c) => (
-                      <SelectItem key={c} value={String(c)}>
-                        {c} semanas
+                      <SelectItem key={c} value={c}>
+                        {CYCLE_LABELS[c]}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label>Check-ins semanais</Label>
+                <Label>Acompanhamento</Label>
                 <Select
-                  value={String(checkinsPerWeek)}
-                  onValueChange={(v) => setCheckinsPerWeek(Number(v))}
+                  value={weeklyCheckin ? 'sim' : 'nao'}
+                  onValueChange={(v) => setWeeklyCheckin(v === 'sim')}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <SelectItem key={n} value={String(n)}>
-                        {n} por semana
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="sim">Check-in semanal</SelectItem>
+                    <SelectItem value="nao">Sem check-in</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -467,6 +513,39 @@ export default function PatientProfilePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  )
+}
+
+function PrescriptionRow({
+  prescription,
+  onRemove,
+}: {
+  prescription: HabitPrescription
+  onRemove: (id: string) => void
+}) {
+  const habit = prescription.expand?.habit
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3">
+      <div>
+        <p className="text-sm font-medium">{habit?.title ?? 'Hábito'}</p>
+        <p className="text-xs text-muted-foreground">
+          {habit?.category} · {CYCLE_LABELS[prescription.planCycle]} · início{' '}
+          {prescription.startDate
+            ? new Date(prescription.startDate).toLocaleDateString('pt-BR')
+            : '—'}
+          {prescription.weeklyCheckin ? ' · check-in semanal' : ''}
+        </p>
+      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+        onClick={() => onRemove(prescription.id)}
+        aria-label="Remover prescrição"
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
     </div>
   )
 }

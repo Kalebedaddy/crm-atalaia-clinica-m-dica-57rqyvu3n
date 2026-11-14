@@ -10,7 +10,7 @@ import {
   waLink,
   StageId,
 } from '@/services/crm'
-import { KanbanColumn } from '@/components/contacts/KanbanColumn'
+import { KanbanColumn } from '@/components/crm/KanbanColumn'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { NewLeadDialog } from '@/components/crm/NewLeadDialog'
@@ -18,7 +18,7 @@ import { NewLeadDialog } from '@/components/crm/NewLeadDialog'
 const STAGE_CYCLE = { 6: '6 sem', 8: '8 sem', 12: '12 sem', 24: '24 sem' }
 
 export function CrmKanban() {
-  const { leads, moveLead } = useCrmStore()
+  const { leads, updateStage } = useCrmStore()
   const [newLeadOpen, setNewLeadOpen] = useState(false)
 
   const byStage = useMemo(() => {
@@ -51,7 +51,7 @@ export function CrmKanban() {
             title={STAGE_LABELS[stage]}
             accent={STAGE_ACCENTS[stage]}
             leads={byStage[stage]}
-            onDrop={(leadId) => moveLead(leadId, stage)}
+            onDrop={(leadId) => updateStage(leadId, stage)}
             renderCard={(lead) => (
               <Link
                 to={`/crm/pacientes/${lead.id}`}
@@ -73,7 +73,11 @@ export function CrmKanban() {
                   {lead.stage === 'plano_ativo' && lead.planCycle && (
                     <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700">
                       Plano{' '}
-                      {STAGE_CYCLE[lead.planCycle as keyof typeof STAGE_CYCLE]}
+                      {
+                        STAGE_CYCLE[
+                          lead.planCycle as unknown as keyof typeof STAGE_CYCLE
+                        ]
+                      }
                     </span>
                   )}
                 </div>

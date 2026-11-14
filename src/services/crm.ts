@@ -48,6 +48,18 @@ export const STAGE_SHORT: Record<StageId, string> = {
   plano_ativo: 'Plano ativo',
 }
 
+// cor do marcador de cada coluna no funil
+export const STAGE_ACCENTS: Record<StageId, string> = {
+  lead_frio: '#94a3b8',
+  lead_morno: '#60a5fa',
+  lead_quente: '#f97316',
+  agendado: '#22c55e',
+  confirmado: '#16a34a',
+  consulta_realizada: '#0d9488',
+  plano_oferecido: '#8b5cf6',
+  plano_ativo: '#7c3aed',
+}
+
 export const PLAN_CYCLES: PlanCycle[] = ['6', '8', '12', '24']
 export const CYCLE_LABELS: Record<PlanCycle, string> = {
   '6': '6 semanas',
@@ -191,11 +203,12 @@ export const leadsService = {
     email?: string
     main_complaint?: string
     source: LeadSource
+    stage?: StageId
   }): Promise<Lead> =>
     toLead(
       await pb.collection('leads').create({
         ...data,
-        stage: 'lead_frio',
+        stage: data.stage ?? 'lead_frio',
         stage_changed_at: new Date().toISOString(),
         marketing_cost: 0,
       }),

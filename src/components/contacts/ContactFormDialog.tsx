@@ -46,7 +46,7 @@ const formSchema = z.object({
       'customer',
     ],
     {
-      required_error: 'Status é obrigatório',
+      message: 'Status é obrigatório',
     },
   ),
 })

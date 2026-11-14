@@ -28,9 +28,13 @@ import {
   computeCostPerScheduled,
   computeFunnelRates,
   computeWeeklyEvolution,
-  type StageId,
 } from '@/services/crmMetrics'
-import { STAGE_SHORT, STAGE_ORDER, currency } from '@/services/crm'
+import {
+  STAGE_SHORT,
+  STAGE_ORDER,
+  currency,
+  type StageId,
+} from '@/services/crm'
 
 const STAGE_COLORS: Record<StageId, string> = {
   lead_frio: '#94a3b8',

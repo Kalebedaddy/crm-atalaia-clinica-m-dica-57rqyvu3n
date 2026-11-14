@@ -1,5 +1,5 @@
-// Store do CRM: carrega todos os leads (com realtime do PocketBase) e expõe
-// helpers de atualização de estágio, Mapa da Saúde e prescrição de hábitos.
+// Store do CRM: carrega leads, biblioteca de hábitos e prescrições
+// (com realtime do PocketBase) e expõe helpers de atualização.
 import {
   createContext,
   useContext,
@@ -9,28 +9,41 @@ import {
   useCallback,
   type ReactNode,
 } from 'react'
-import { pb } from '@/lib/pocketbase/client'
+import pb from '@/lib/pocketbase/client'
 import {
   leadsService,
-  mapService,
-  habitsService,
+  habitLibraryService,
+  habitPrescriptionsService,
   type Lead,
   type StageId,
-  type HealthMapData,
+  type LifeUpMap,
+  type Habit,
   type HabitPrescription,
 } from '@/services/crm'
 
 interface CrmStoreValue {
   leads: Lead[]
+  habitLibrary: Habit[]
+  prescriptions: HabitPrescription[]
   loading: boolean
   updateStage: (id: string, stage: StageId) => Promise<void>
   updateCost: (id: string, cost: number) => Promise<void>
-  updateMap: (id: string, data: Partial<HealthMapData>) => Promise<void>
-  prescribeHabit: (
-    leadId: string,
-    habitId: string,
-    cycleWeeks: 6 | 8 | 12 | 24,
-  ) => Promise<void>
+  updateMap: (id: string, map: LifeUpMap | null) => Promise<void>
+  updateNotes: (id: string, notes: string) => Promise<void>
+  createHabit: (data: {
+    title: string
+    category: Habit['category']
+    description?: string
+  }) => Promise<void>
+  removeHabit: (id: string) => Promise<void>
+  prescribeHabit: (data: {
+    lead: string
+    habit: string
+    plan_cycle: HabitPrescription['planCycle']
+    start_date?: string
+    weekly_checkin?: boolean
+    notes?: string
+  }) => Promise<void>
   removePrescription: (id: string) => Promise<void>
   prescriptionsOf: (leadId: string) => HabitPrescription[]
   refresh: () => Promise<void>
@@ -38,24 +51,22 @@ interface CrmStoreValue {
 
 const CrmStoreContext = createContext<CrmStoreValue | null>(null)
 
-const STAGES_BEFORE = [
-  'lead_frio',
-  'lead_morno',
-  'lead_quente',
-  'agendado',
-  'confirmado',
-  'consulta_realizada',
-  'plano_oferecido',
-]
-
 export function CrmProvider({ children }: { children: ReactNode }) {
   const [leads, setLeads] = useState<Lead[]>([])
+  const [habitLibrary, setHabitLibrary] = useState<Habit[]>([])
+  const [prescriptions, setPrescriptions] = useState<HabitPrescription[]>([])
   const [loading, setLoading] = useState(true)
 
   const refresh = useCallback(async () => {
     try {
-      const data = await leadsService.list()
-      setLeads(data)
+      const [ls, habits, prescs] = await Promise.all([
+        leadsService.list(),
+        habitLibraryService.list(),
+        habitPrescriptionsService.list(),
+      ])
+      setLeads(ls)
+      setHabitLibrary(habits)
+      setPrescriptions(prescs)
     } catch {
       // mantém o que tem; erro silencioso para não travar o painel
     } finally {
@@ -66,20 +77,22 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false
     refresh()
-    const collection = pb.collection('leads')
+    const leadsCol = pb.collection('leads')
     const onChange = () => {
       if (!cancelled) refresh()
     }
-    collection.subscribe('*', onChange)
+    leadsCol.subscribe('*', onChange)
     return () => {
       cancelled = true
-      collection.unsubscribe('*')
+      leadsCol.unsubscribe('*')
     }
   }, [refresh])
 
   const updateStage = useCallback(
     async (id: string, stage: StageId) => {
-      // atualização otimista + histórico gravado pelo backend (hook) ou aqui
+      const lead = leads.find((l) => l.id === id)
+      if (!lead) return
+      // atualização otimista; o histórico em stage_history é gravado pelo serviço
       setLeads((prev) =>
         prev.map((l) =>
           l.id === id
@@ -88,12 +101,13 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         ),
       )
       try {
-        await leadsService.updateStage(id, stage)
+        await leadsService.changeStage(lead, stage)
+        await refresh()
       } catch {
         await refresh()
       }
     },
-    [refresh],
+    [leads, refresh],
   )
 
   const updateCost = useCallback(
@@ -111,14 +125,12 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   )
 
   const updateMap = useCallback(
-    async (id: string, data: Partial<HealthMapData>) => {
+    async (id: string, map: LifeUpMap | null) => {
       setLeads((prev) =>
-        prev.map((l) =>
-          l.id === id ? { ...l, healthMap: { ...l.healthMap, ...data } } : l,
-        ),
+        prev.map((l) => (l.id === id ? { ...l, lifeUpMap: map } : l)),
       )
       try {
-        await mapService.upsert(id, data)
+        await leadsService.update(id, { life_up_map: map ?? {} })
       } catch {
         await refresh()
       }
@@ -126,25 +138,13 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     [refresh],
   )
 
-  const prescribeHabit = useCallback(
-    async (leadId: string, habitId: string, cycleWeeks: 6 | 8 | 12 | 24) => {
+  const updateNotes = useCallback(
+    async (id: string, notes: string) => {
+      setLeads((prev) =>
+        prev.map((l) => (l.id === id ? { ...l, lifeUpNotes: notes } : l)),
+      )
       try {
-        const created = await habitsService.prescribe(
-          leadId,
-          habitId,
-          cycleWeeks,
-        )
-        setLeads((prev) =>
-          prev.map((l) =>
-            l.id === leadId
-              ? {
-                  ...l,
-                  prescriptions: [...l.prescriptions, created],
-                  planCycleWeeks: l.planCycleWeeks ?? cycleWeeks,
-                }
-              : l,
-          ),
-        )
+        await leadsService.update(id, { life_up_notes: notes })
       } catch {
         await refresh()
       }
@@ -152,35 +152,83 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     [refresh],
   )
 
-  const removePrescription = useCallback(
-    async (id: string) => {
+  const createHabit = useCallback<CrmStoreValue['createHabit']>(
+    async (data) => {
       try {
-        await habitsService.removePrescription(id)
-        setLeads((prev) =>
-          prev.map((l) => ({
-            ...l,
-            prescriptions: l.prescriptions.filter((p) => p.id !== id),
-          })),
-        )
+        await pb.collection('habit_library').create({
+          title: data.title,
+          category: data.category,
+          description: data.description ?? '',
+        })
+        const habits = await habitLibraryService.list()
+        setHabitLibrary(habits)
       } catch {
+        // erro ignorado; a lista é recarregada para refletir o estado real
         await refresh()
       }
     },
     [refresh],
   )
+
+  const removeHabit = useCallback(async (id: string) => {
+    try {
+      await pb.collection('habit_library').delete(id)
+    } catch {
+      // segue para o reload mesmo em erro
+    }
+    const habits = await habitLibraryService.list().catch(() => undefined)
+    if (habits) setHabitLibrary(habits)
+  }, [])
+
+  const prescribeHabit = useCallback<CrmStoreValue['prescribeHabit']>(
+    async (data) => {
+      try {
+        await habitPrescriptionsService.create({
+          lead: data.lead,
+          habit: data.habit,
+          plan_cycle: data.plan_cycle,
+          start_date: data.start_date ?? new Date().toISOString().slice(0, 10),
+          weekly_checkin: data.weekly_checkin,
+          notes: data.notes,
+        })
+      } catch {
+        // segue para o reload mesmo em erro
+      }
+      const prescs = await habitPrescriptionsService
+        .list()
+        .catch(() => undefined)
+      if (prescs) setPrescriptions(prescs)
+    },
+    [],
+  )
+
+  const removePrescription = useCallback(async (id: string) => {
+    try {
+      await habitPrescriptionsService.remove(id)
+    } catch {
+      // segue para o reload mesmo em erro
+    }
+    const prescs = await habitPrescriptionsService.list().catch(() => undefined)
+    if (prescs) setPrescriptions(prescs)
+  }, [])
 
   const prescriptionsOf = useCallback(
-    (leadId: string) => leads.find((l) => l.id === leadId)?.prescriptions ?? [],
-    [leads],
+    (leadId: string) => prescriptions.filter((p) => p.lead === leadId),
+    [prescriptions],
   )
 
   const value = useMemo(
     () => ({
       leads,
+      habitLibrary,
+      prescriptions,
       loading,
       updateStage,
       updateCost,
       updateMap,
+      updateNotes,
+      createHabit,
+      removeHabit,
       prescribeHabit,
       removePrescription,
       prescriptionsOf,
@@ -188,10 +236,15 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     }),
     [
       leads,
+      habitLibrary,
+      prescriptions,
       loading,
       updateStage,
       updateCost,
       updateMap,
+      updateNotes,
+      createHabit,
+      removeHabit,
       prescribeHabit,
       removePrescription,
       prescriptionsOf,

@@ -68,9 +68,7 @@ const CrmLayout = () => (
 )
 
 const App = () => (
-  <BrowserRouter
-    future={{ v7_startTransition: false, v7_relativeSplatPath: false }}
-  >
+  <BrowserRouter>
     <TooltipProvider delayDuration={0}>
       <CrmProvider>
         <Toaster />

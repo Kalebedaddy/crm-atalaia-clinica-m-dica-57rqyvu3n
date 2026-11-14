@@ -5,6 +5,13 @@ import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -13,20 +20,23 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import { useCrmStore } from '@/stores/useCrmStore'
 import {
   habitLibraryService,
   messageTemplatesService,
-  Category,
+  type Habit,
   STAGE_LABELS,
   STAGE_ORDER,
-  StageId,
+  type StageId,
 } from '@/services/crm'
 import { renderTemplate } from '@/services/templates'
 import { Plus, Trash2, Copy, BookOpen, MessageSquareText } from 'lucide-react'
 import { WhatsappIcon } from '@/components/whatsapp/WhatsappIcon'
 import { waLink } from '@/services/crm'
 
-const CATEGORIES: Array<Category> = [
+type Category = Habit['category']
+
+const CATEGORIES: Category[] = [
   'Sono',
   'Alimentação',
   'Movimento',
@@ -62,47 +72,30 @@ export function HabitsTemplatesPage() {
 }
 
 function HabitLibrary() {
-  const [habits, setHabits] = useState<
-    Array<import('@/services/crm').HabitProtocol>
-  >([])
-  const [loading, setLoading] = useState(true)
+  const { habitLibrary, loading, createHabit, removeHabit } = useCrmStore()
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState<Category>('Sono')
   const [description, setDescription] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const load = async () => {
-    setLoading(true)
-    try {
-      setHabits(await habitLibraryService.list())
-    } finally {
-      setLoading(false)
-    }
-  }
-  useEffect(() => {
-    load()
-  }, [])
-
   const add = async () => {
     if (!title.trim()) return
     setSaving(true)
     try {
-      await habitLibraryService.create({
+      await createHabit({
         title: title.trim(),
         category,
         description: description.trim() || undefined,
       })
       setTitle('')
       setDescription('')
-      await load()
     } finally {
       setSaving(false)
     }
   }
 
   const remove = async (id: string) => {
-    await habitLibraryService.remove(id)
-    await load()
+    await removeHabit(id)
   }
 
   if (loading)
@@ -140,18 +133,17 @@ function HabitLibrary() {
           <Button onClick={add} disabled={saving}>
             <Plus className="mr-1 h-4 w-4" /> Adicionar
           </Button>
-          <Textarea
+          <Input
             className="sm:col-span-3"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Descrição do protocolo (opcional)"
-            rows={2}
           />
         </CardContent>
       </Card>
 
       {CATEGORIES.map((cat) => {
-        const items = habits.filter((h) => h.category === cat)
+        const items = habitLibrary.filter((h) => h.category === cat)
         return (
           <div key={cat}>
             <h3 className="mb-2 font-semibold">
@@ -203,7 +195,7 @@ function TemplatesManager() {
   const [loading, setLoading] = useState(true)
   const [newTpl, setNewTpl] = useState({
     stage: 'lead_frio' as StageId,
-    title: '',
+    name: '',
     body: '',
   })
 
@@ -232,13 +224,13 @@ function TemplatesManager() {
   }
 
   const add = async () => {
-    if (!newTpl.title.trim() || !newTpl.body.trim()) return
+    if (!newTpl.name.trim() || !newTpl.body.trim()) return
     await messageTemplatesService.create({
       stage: newTpl.stage,
-      title: newTpl.title.trim(),
+      name: newTpl.name.trim(),
       body: newTpl.body.trim(),
     })
-    setNewTpl({ stage: 'lead_frio', title: '', body: '' })
+    setNewTpl({ stage: 'lead_frio', name: '', body: '' })
     await load()
   }
 
@@ -278,11 +270,11 @@ function TemplatesManager() {
               </SelectContent>
             </Select>
             <Input
-              value={newTpl.title}
+              value={newTpl.name}
               onChange={(e) =>
-                setNewTpl((t) => ({ ...t, title: e.target.value }))
+                setNewTpl((t) => ({ ...t, name: e.target.value }))
               }
-              placeholder="Título do modelo (ex.: Primeiro contato — WhatsApp)"
+              placeholder="Nome do modelo (ex.: Primeiro contato — WhatsApp)"
             />
           </div>
           <Textarea
@@ -320,7 +312,7 @@ function TemplatesManager() {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-medium">{t.title}</p>
+                          <p className="font-medium">{t.name}</p>
                           <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
                             {t.body}
                           </p>
