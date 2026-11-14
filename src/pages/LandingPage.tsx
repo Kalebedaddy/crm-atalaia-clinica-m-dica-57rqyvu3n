@@ -151,7 +151,7 @@ export default function LandingPage() {
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
               KB
             </span>
-            <span>Dr. Kleber Barbosa</span>
+            <span className="hidden sm:inline">Dr. Kleber Barbosa</span>
           </a>
           <nav className="hidden items-center gap-6 text-sm md:flex">
             <button
@@ -188,11 +188,14 @@ export default function LandingPage() {
           <div className="flex items-center gap-2">
             <Button
               asChild
-              variant="outline"
               size="sm"
-              className="hidden sm:inline-flex"
+              className="bg-primary text-primary-foreground shadow-md"
             >
-              <Link to="/crm">Área do médico</Link>
+              <Link to="/crm">
+                <Stethoscope className="mr-1 h-4 w-4" />
+                <span className="hidden sm:inline">Área do médico</span>
+                <span className="sm:hidden">CRM</span>
+              </Link>
             </Button>
             <Button
               asChild
@@ -557,6 +560,16 @@ export default function LandingPage() {
       >
         <WhatsappIcon className="h-7 w-7" />
       </a>
+
+      {/* Botão fixo de acesso ao CRM — sempre visível durante o scroll */}
+      <Link
+        to="/crm"
+        className="fixed bottom-6 left-6 z-50 flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-[0_4px_14px_0_rgba(0,0,0,0.3)] ring-2 ring-primary/30 transition-transform hover:-translate-y-1"
+        aria-label="Ir para a Área do médico (CRM)"
+      >
+        <Stethoscope className="h-5 w-5" />
+        <span>Área do médico</span>
+      </Link>
     </div>
   )
 }
